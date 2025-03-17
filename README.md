@@ -36,17 +36,18 @@ from khutbahmaker import KhutbahMaker
 
 # Initialize
 client = KhutbahMaker(
-    mode="default",      # Mode (default/webui)
-    api_key="YOUR_KEY",  # AI service API key
-    model="gemini-2.0-flash-thinking-exp-01-21"  # AI model to use
+    mode="default",                               # Mode (default/webui)
+    api_key="YOUR_KEY",                           # AI service API key
+    model="gemini-2.0-flash-thinking-exp-01-21"   # AI model to use
+    timeout=180                                   # AI request timeout in seconds
 )
 
 # Generate khutbah
 pdf_file, markdown_text = client.generate_khutbah(
-    topic="Ramadan Preparation",    # Main topic/theme
-    length="Short",                 # short/medium/long
-    tone="Inspirational",           # Tone of the khutbah
-    language="Bahasa Malaysia"      # Target language
+    topic="Ramadan Preparation",   # Main topic/theme
+    length="Short",                # short/medium/long
+    tone="Inspirational",          # Tone of the khutbah
+    language="Bahasa Malaysia"     # Target language
 )
 ```
 

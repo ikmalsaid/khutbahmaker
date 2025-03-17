@@ -59,7 +59,7 @@ def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool 
                                 )
                                 
                                 khutbah_tone = gr.Dropdown(
-                                    value="Inspirational", 
+                                    value="Scholarly", 
                                     choices=["Scholarly", "Inspirational", "Practical", "Reflective", "Motivational", "Educational", "Historical", "Narrative"], 
                                     label="Khutbah Tone",
                                     info="Select the tone of the khutbah based on the topic"

@@ -47,7 +47,7 @@ class KhutbahMaker:
             if self.api_key:
                 genai.configure(api_key=self.api_key)
             
-            self.logger.info(f"[{task_id}] Generating khutbah on topic '{topic}' in {language} with tone of {tone.lower()}...")
+            self.logger.info(f"[{task_id}] Generating khutbah: '{topic}' ({language} - {tone})")
             
             if length.lower() == 'short':
                 length = 'short (approximately 10-15 minutes)'
@@ -56,7 +56,7 @@ class KhutbahMaker:
             elif length.lower() == 'long':
                 length = 'long (approximately 20-30 minutes)'
 
-            prompt = f"You are an expert Islamic scholar in writing khutbahs. You are required to write a {length} Friday khutbah (sermon) in {language} on the topic on '{topic}' with tone of {tone.lower()}. Create a complete, well-structured Islamic khutbah that includes: 1. An appropriate title 2. Opening with praise to Allah and salutations on Prophet Muhammad (peace be upon him) 3. Introduction to the topic with relevant Quranic verses and Hadith 4. Main body with clear points, explanations, and guidance 5. Practical advice for the audience 6. Conclusion with a summary of key points 7. Closing duas (prayers) The khutbah should be scholarly yet accessible, with proper citations of Quranic verses and authentic Hadith. Write the ENTIRE khutbah in {language} only, including the explanation and translation of Quranic verses and Hadith. Only include Arabic script for Quranic verses and Hadith, followed by their translation in {language}. Do not mix the khutbah with other languages and copyrighted materials. Do not include any opening or closing remarks."
+            prompt = f"You are an expert Islamic scholar in writing khutbahs. You are required to write a {length} Friday khutbah (sermon) in {language} on the topic on '{topic}' with a {tone.lower()} tone. Create a complete, well-structured Islamic khutbah that includes: 1. An appropriate title 2. Opening with praise to Allah and salutations on Prophet Muhammad (peace be upon him) 3. Introduction to the topic with relevant Quranic verses and Hadith 4. Main body with clear points, explanations, and guidance 5. Practical advice for the audience 6. Conclusion with a summary of key points 7. Closing duas (prayers) The khutbah should be scholarly yet accessible, with proper citations of Quranic verses and authentic Hadith. Write the ENTIRE khutbah in {language} only, including the explanation and translation of Quranic verses and Hadith. Only include Arabic script for Quranic verses and Hadith, followed by their translation in {language}. DO NOT mix the khutbah with other languages and copyrighted materials. DO NOT include any opening or closing remarks."
 
             model = genai.GenerativeModel(self.aigc_model)
             response = model.generate_content(prompt, request_options=RequestOptions(timeout=self.timeout), generation_config=GenerationConfig(temperature=1.2))
@@ -74,7 +74,8 @@ class KhutbahMaker:
             clean_filename = f"{task_id}_{clean_topic}_khutbah_{language.lower().replace(' ', '_')}"
             pdf_path = os.path.join(tempfile.gettempdir(), f"{clean_filename}.pdf")
             
-            self.logger.info(f"[{task_id}] Generating Khutbah PDF: {pdf_path}")
+            self.logger.info(f"[{task_id}] Generating PDF: {pdf_path}")
+            
             # Initialize without TOC to avoid hierarchy issues
             pdf = MarkdownPdf(toc_level=0)
             
@@ -155,7 +156,7 @@ class KhutbahMaker:
             return pdf_path
 
         except Exception as e:
-            self.logger.error(f"[{task_id}] Khutbah PDF generation failed: {str(e)}")
+            self.logger.error(f"[{task_id}] PDF generation failed: {str(e)}")
             return None
 
     def __get_taskid(self):
