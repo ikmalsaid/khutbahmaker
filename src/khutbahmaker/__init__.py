@@ -6,11 +6,13 @@ from datetime import datetime
 from colorpaws import ColorPaws
 from google import generativeai as genai
 from markdown_pdf import MarkdownPdf, Section
+from google.generativeai.types import GenerationConfig
+from google.generativeai.types.helper_types import RequestOptions
 
 class KhutbahMaker:
     """Copyright (C) 2025 Ikmal Said. All rights reserved"""
     
-    def __init__(self, mode='default', api_key=None, model='gemini-2.0-flash-thinking-exp-01-21'):
+    def __init__(self, mode='default', api_key=None, model='gemini-2.0-flash-thinking-exp-01-21', timeout=180):
         """
         Initialize KhutbahMaker module.
         
@@ -18,16 +20,18 @@ class KhutbahMaker:
             mode (str): Startup mode ('default', 'webui', or 'api')
             api_key (str): API key for AI services
             model (str): AI model to use
+            timeout (int): Timeout for AI requests in seconds
         """
         self.logger = ColorPaws(name=self.__class__.__name__, log_on=True, log_to=None)
         self.aigc_model = model
         self.api_key = api_key
+        self.timeout = timeout * 1000
         
         self.logger.info("KhutbahMaker is ready!")
         
         if mode != 'default':
             if mode == 'webui':
-                self.start_wui()
+                self.start_webui()
             else:
                 raise ValueError(f"Invalid startup mode: {mode}")
 
@@ -43,14 +47,20 @@ class KhutbahMaker:
             if self.api_key:
                 genai.configure(api_key=self.api_key)
             
-            self.logger.info(f"[{task_id}] Generating khutbah on topic: {topic}")
+            self.logger.info(f"[{task_id}] Generating khutbah on topic '{topic}' in {language} with tone of {tone.lower()}...")
             
-            # Create prompt based on parameters
-            prompt = f"""You are an expert Islamic scholar tasked with writing a {length} Friday khutbah (sermon) in {language} on the topic: {topic} with tone: {tone}. Create a complete, well-structured Islamic khutbah that includes: 1. An appropriate title 2. Opening with praise to Allah and salutations on Prophet Muhammad (peace be upon him) 3. Introduction to the topic with relevant Quranic verses and Hadith 4. Main body with clear points, explanations, and guidance 5. Practical advice for the audience 6. Conclusion with a summary of key points 7. Closing duas (prayers) The khutbah should be scholarly yet accessible, with proper citations of Quranic verses and authentic Hadith. Format in Markdown with appropriate headings, paragraphs, and emphasis. For Arabic text, include both Arabic script and transliteration where appropriate."""
+            if length.lower() == 'short':
+                length = 'short (approximately 10-15 minutes)'
+            elif length.lower() == 'medium':
+                length = 'medium (approximately 15-20 minutes)'
+            elif length.lower() == 'long':
+                length = 'long (approximately 20-30 minutes)'
+
+            prompt = f"You are an expert Islamic scholar in writing khutbahs. You are required to write a {length} Friday khutbah (sermon) in {language} on the topic on '{topic}' with tone of {tone.lower()}. Create a complete, well-structured Islamic khutbah that includes: 1. An appropriate title 2. Opening with praise to Allah and salutations on Prophet Muhammad (peace be upon him) 3. Introduction to the topic with relevant Quranic verses and Hadith 4. Main body with clear points, explanations, and guidance 5. Practical advice for the audience 6. Conclusion with a summary of key points 7. Closing duas (prayers) The khutbah should be scholarly yet accessible, with proper citations of Quranic verses and authentic Hadith. Write the ENTIRE khutbah in {language} only, including the explanation and translation of Quranic verses and Hadith. Only include Arabic script for Quranic verses and Hadith, followed by their translation in {language}. Do not mix the khutbah with other languages and copyrighted materials. Do not include any opening or closing remarks."
 
             model = genai.GenerativeModel(self.aigc_model)
-            response = model.generate_content(prompt)
-            
+            response = model.generate_content(prompt, request_options=RequestOptions(timeout=self.timeout), generation_config=GenerationConfig(temperature=1.2))
+
             return self.__clean_markdown(response.text)
 
         except Exception as e:
@@ -61,11 +71,29 @@ class KhutbahMaker:
         """Convert khutbah markdown to PDF"""
         try:
             clean_topic = re.sub(r'[^\w\-]', '_', topic)
-            clean_filename = f"{clean_topic}_khutbah_{language.lower().replace(' ', '_')}"
+            clean_filename = f"{task_id}_{clean_topic}_khutbah_{language.lower().replace(' ', '_')}"
             pdf_path = os.path.join(tempfile.gettempdir(), f"{clean_filename}.pdf")
             
             self.logger.info(f"[{task_id}] Generating Khutbah PDF: {pdf_path}")
-            pdf = MarkdownPdf(toc_level=3)
+            # Initialize without TOC to avoid hierarchy issues
+            pdf = MarkdownPdf(toc_level=0)
+            
+            # Process markdown to ensure proper header hierarchy
+            lines = markdown_text.split('\n')
+            processed_lines = []
+            
+            # Check if first line is a header, if not add one
+            if not lines or not lines[0].startswith('# '):
+                title = f"KhutbahMaker Script ({language})"
+                processed_lines.append(f"# {title}")
+                processed_lines.append("")  # Add blank line after title
+            
+            # Process the rest of the content
+            for line in lines:
+                processed_lines.append(line)
+            
+            # Join back into a single string
+            processed_markdown = '\n'.join(processed_lines)
             
             # Add main content section with custom CSS
             css = """            
@@ -79,8 +107,8 @@ class KhutbahMaker:
             /* Arabic text specific */
             [lang='ar'] {
                 direction: rtl;
-                font-family: 'Amiri', serif;
-                font-size: 1.6em;
+                font-family: 'Amiri', sans-serif;
+                font-size: 20px;
                 line-height: 1.8;
             }
             
@@ -112,18 +140,13 @@ class KhutbahMaker:
             }
             """
             
-            # Add the main content section
-            main_section = Section(markdown_text, toc=True)
+            # Add the main content section - without TOC
+            main_section = Section(processed_markdown, toc=False)
             pdf.add_section(main_section, user_css=css)
-            
-            # Ensure the content starts with a level 1 header
-            if not markdown_text.startswith('# '):
-                title = f"Khutbah on {topic}"
-                markdown_text = f"# {title}\n\n{markdown_text}"
             
             # Set PDF metadata with Unicode support
             pdf.meta["title"] = title
-            pdf.meta["subject"] = f"Islamic Khutbah on {topic}"
+            pdf.meta["subject"] = title
             pdf.meta["author"] = "Ikmal Said"
             pdf.meta["creator"] = "KhutbahMaker"
             
@@ -146,22 +169,35 @@ class KhutbahMaker:
         task_id = f"{timestamp}_{uuid_part}"
         return task_id
     
-    def generate_khutbah(self, topic, length="Short", tone="Inspirational", language="Bahasa Malaysia"):
+    def generate_khutbah(self, topic, length="short", tone="inspirational", language="bahasa malaysia"):
         """Generate an Islamic khutbah based on specified parameters.
         
         Parameters:
             topic (str): The main topic or theme of the khutbah
-            length (str): Desired length ('Short' | 'Long')
-            tone (str): Tone of the khutbah ('Scholarly' | 'Inspirational' | 'Practical' | 'Reflective' | 'Motivational' | 'Educational' | 'Historical' | 'Narrative')
-            language (str): Target language ('Bahasa Malaysia' | 'Arabic' | 'English' | 'Mandarin' | 'Tamil')
+            length (str): Desired length ('short' | 'long')
+            tone (str): Tone of the khutbah ('scholarly' | 'inspirational' | 'practical' | 'reflective' | 'motivational' | 'educational' | 'historical' | 'narrative')
+            language (str): Target language ('bahasa malaysia' | 'arabic' | 'english' | 'mandarin' | 'tamil')
         """
         if not topic or topic == "":
             self.logger.error("Topic is required!")
             return None, None
         
-        task_id = self.__get_taskid()
-        self.logger.info(f"[{task_id}] Khutbah generation started!")
+        if length.lower() not in ['short', 'medium', 'long']:
+            self.logger.error("Invalid length!")
+            return None, None
         
+        if tone.lower() not in ['scholarly', 'inspirational', 'practical', 'reflective', 'motivational', 'educational', 'historical', 'narrative']:
+            self.logger.error("Invalid tone!")
+            return None, None
+        
+        if language.lower() not in ['bahasa malaysia', 'arabic', 'english', 'mandarin', 'tamil']:
+            self.logger.error("Invalid language!")
+            return None, None
+        
+        task_id = self.__get_taskid()
+        self.logger.info(f"[{task_id}] Khutbah generation task started!")
+        topic = topic.title()
+
         try:           
             markdown_text = self.__generate_khutbah(topic, length, tone, language, task_id)
             if not markdown_text:
@@ -178,7 +214,7 @@ class KhutbahMaker:
             self.logger.error(f"[{task_id}] Khutbah generation failed: {str(e)}")
             return None, None
         
-    def start_wui(self, host: str = "0.0.0.0", port: int = 5488, browser: bool = True,
+    def start_webui(self, host: str = "0.0.0.0", port: int = 5488, browser: bool = True,
                   upload_size: str = "4MB", public: bool = False, limit: int = 10):
         """
         Start Citrailmu WebUI with all features.

@@ -1,7 +1,7 @@
 import gradio as gr
 
 def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool = True,
-                   upload_size: str = "4MB", public: bool = False, limit: int = 10):
+                      upload_size: str = "4MB", public: bool = False, limit: int = 10):
     """ 
     Start KhutbahMaker Web UI with all features.
     
@@ -22,8 +22,8 @@ def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool 
         """
         
         gr_theme = gr.themes.Default(
-            primary_hue="green",
-            secondary_hue="green",
+            primary_hue="purple",
+            secondary_hue="purple",
             neutral_hue=gr.themes.colors.zinc,
             font=["Amiri", "system-ui", "sans-serif"]
         )
@@ -53,9 +53,9 @@ def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool 
                                 
                                 khutbah_length = gr.Dropdown(
                                     value="Short", 
-                                    choices=["Short", "Long"], 
+                                    choices=["Short", "Medium", "Long"], 
                                     label="Khutbah Length",
-                                    info="Select the length of the khutbah"
+                                    info="Short (10-15 minutes), Medium (15-20 minutes) or Long (20-30 minutes)"
                                 )
                                 
                                 khutbah_tone = gr.Dropdown(
