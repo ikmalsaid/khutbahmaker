@@ -8,7 +8,7 @@ version = "25.3.0"
 authors = [
   { name="ikmalsaid", email="ikmalsaid@gmail.com" },
 ]
-description = "An AI-powered Islamic sermon/khutbah script generator."
+description = "Generate Islamic Friday sermons (khutbah) using AI (#GodamSahur 2025)"
 readme = "README.md"
 requires-python = ">=3.8"
 classifiers = [
