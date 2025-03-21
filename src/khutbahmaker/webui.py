@@ -1,7 +1,7 @@
 import gradio as gr
 
-def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool = True,
-                      upload_size: str = "4MB", public: bool = False, limit: int = 10):
+def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool = True, upload_size: str = "4MB",
+                      public: bool = False, limit: int = 10, quiet: bool = True):
     """ 
     Start KhutbahMaker Web UI with all features.
     
@@ -13,6 +13,7 @@ def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool 
     - upload_size (str): Maximum file size for uploads
     - public (bool): Enable public URL mode
     - limit (int): Maximum number of concurrent requests
+    - quiet (bool): Enable quiet mode
     """
     try:
         gr_css = """
@@ -87,7 +88,7 @@ def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool 
             inbrowser=browser,
             max_file_size=upload_size,
             share=public,
-            quiet=True
+            quiet=quiet
         )
     
     except Exception as e:
