@@ -61,10 +61,11 @@ client = KhutbahMaker(mode="webui")
 client.start_webui(
     host="0.0.0.0",      # Server host
     port=7680,           # Server port
-    browser=True,        # Launch browser
+    browser=False,       # Launch browser
     upload_size="4MB",   # Max upload size
     public=False,        # Enable public URL
-    limit=10             # Max concurrent requests
+    limit=10,            # Max concurrent requests
+    quiet=False          # Quiet mode
 )
 ```
 
