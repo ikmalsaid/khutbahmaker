@@ -59,7 +59,7 @@ Start the Gradio web interface:
 client = KhutbahMaker(mode="webui")
 # OR
 client.start_webui(
-    host="0.0.0.0",      # Server host
+    host="localhost",    # Server host
     port=7860,           # Server port
     browser=False,       # Launch browser
     upload_size="4MB",   # Max upload size
