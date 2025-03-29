@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "khutbahmaker"
-version = "25.3.3"
+version = "25.3.4"
 authors = [
   { name="ikmalsaid", email="ikmalsaid@gmail.com" },
 ]
@@ -20,8 +20,7 @@ classifiers = [
 dependencies = [
   "google-generativeai",
   "colorpaws",
-  "gradio==4.38.1",
-  "fastapi==0.112.4",
+  "gradio",
   "markdown-pdf"
 ]
 
