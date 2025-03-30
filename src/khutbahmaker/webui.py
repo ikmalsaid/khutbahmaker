@@ -30,8 +30,9 @@ def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool 
         )
     
         with gr.Blocks(title="KhutbahMaker", analytics_enabled=False, theme=gr_theme, css=gr_css).queue(default_concurrency_limit=limit) as demo:
-            gr.Markdown("<h1><center>KhutbahMaker Web UI")
-            gr.Markdown("<h3><center>Made for #GodamSahur 2025 by Ikmal Said")
+            gr.Markdown("## <br><center>KhutbahMaker Web UI")
+            gr.Markdown("<center>Made for #GodamSahur 2025 by Ikmal Said")
+            gr.Markdown("<center>")
 
             with gr.Row():
                 with gr.Column():
@@ -66,8 +67,6 @@ def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool 
                                 )
                                 
                                 khutbah_btn = gr.Button("Generate Khutbah", variant="primary")
-                                gr.Markdown("<center>")
-                                gr.Markdown("<center>KhutbahMaker can make mistakes. Check important info.")
                 
                 with gr.Column():
                     with gr.Tab("Results"):
@@ -75,6 +74,10 @@ def KhutbahMakerWebUI(client, host: str = None, port: int = None, browser: bool 
                             khutbah_output = gr.File(label="Download Khutbah as PDF")
                             with gr.Accordion("Read Khutbah as Text"):
                                 khutbah_text = gr.Markdown(value="Please generate khutbah first for reading!", height=300)
+
+            gr.Markdown("<center>")
+            gr.Markdown("<center>KhutbahMaker can make mistakes. Check important info.")
+            gr.Markdown("<center>")
 
             # Setup event handlers
             khutbah_btn.click(fn=client.generate_khutbah, inputs=[khutbah_topic, khutbah_length, khutbah_tone, khutbah_language], outputs=[khutbah_output, khutbah_text])
